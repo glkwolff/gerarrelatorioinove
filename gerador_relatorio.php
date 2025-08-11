@@ -1,30 +1,52 @@
 <?php
 
-// 1. URL DA SUA API DE TESTE LOCAL
-// Aponta para o servidor Python que está rodando na sua máquina.
-$url_da_api = "http://127.0.0.1:5000/api/alunos?data_inicio=2025-08-01&data_fim=2025-08-11";
+// --- 1. CONFIGURAÇÃO DAS DATAS ---
 
-// Inicializa o array de dados como vazio por segurança.
+// Define um período padrão: últimos 30 dias.
+$data_padrao_inicio = date('Y-m-d', strtotime('-30 days'));
+$data_padrao_fim = date('Y-m-d'); // Hoje
+
+// Verifica se o formulário foi enviado com novas datas.
+// O operador '??' usa o valor da esquerda se ele existir, senão usa o da direita.
+$data_inicio = $_GET['data_inicio'] ?? $data_padrao_inicio;
+$data_fim = $_GET['data_fim'] ?? $data_padrao_fim;
+
+
+// --- 2. MONTAGEM DA URL E PREPARAÇÃO DAS VARIÁVEIS ---
+
+// Monta a URL da API dinamicamente com as datas selecionadas.
+$url_da_api = "http://127.0.0.1:5000/api/alunos?data_inicio={$data_inicio}&data_fim={$data_fim}";
+
+// Gera um título dinâmico para o relatório.
+$titulo_relatorio = "RELATÓRIO DE ALUNOS POR DATA DE MATRÍCULA: "
+    . date('d/m/Y', strtotime($data_inicio)) . " ATÉ " . date('d/m/Y', strtotime($data_fim));
+
 $dados_alunos = [];
+$mensagem_erro = '';
 
-// 2. FAZ A CHAMADA À API
-// O @ suprime erros para que possamos tratá-los de forma controlada.
+
+// --- 3. CHAMADA À API E PROCESSAMENTO ---
+
 $resposta_json = @file_get_contents($url_da_api);
 
-// 3. PROCESSA A RESPOSTA
-// Apenas processa se a resposta não for falsa (ou seja, se a chamada funcionou).
 if ($resposta_json !== FALSE) {
-    // Decodifica a string JSON para um array PHP.
     $dados_alunos = json_decode($resposta_json, true);
+    // Tratamento de erro caso a API retorne uma mensagem de erro JSON
+    if (isset($dados_alunos['erro'])) {
+        $mensagem_erro = "Erro da API: " . htmlspecialchars($dados_alunos['erro']);
+        $dados_alunos = []; // Limpa os dados para não exibir a tabela
+    }
+} else {
+    // Mensagem de erro se o servidor Python estiver offline
+    $mensagem_erro = "ERRO: Não foi possível conectar ao servidor da API. Verifique se o servidor Python (api_servidor_teste.py) está em execução.";
 }
 
-// 4. DEFINE AS VARIÁVEIS PARA O RELATÓRIO
-// O título pode ser estático ou gerado dinamicamente.
-$titulo_relatorio = "RELATÓRIO DE ALUNOS (via API) POR DATA DE MATRÍCULA: 01/08/2025 ATÉ 11/08/2025.";
 $total_alunos = count($dados_alunos);
 
-// 5. INCLUI O TEMPLATE HTML PARA EXIBIR OS DADOS
-// Este arquivo não precisa ser alterado.
+
+// --- 4. INCLUI O ARQUIVO DE APRESENTAÇÃO (VIEW) ---
+// Todas as variáveis definidas acima ($titulo_relatorio, $dados_alunos, etc.)
+// estarão disponíveis dentro do arquivo de template.
 include 'relatorio_alunos.html';
 
 ?>

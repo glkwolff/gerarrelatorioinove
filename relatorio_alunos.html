@@ -4,19 +4,45 @@
     <meta charset="UTF-8">
     <title>Relatório de Alunos InoveCFC</title>
     <style>
-        strong { font-family:arial; display:block; margin-bottom:10px; }
-        table thead tr td { font-weight:bold; background-color:#999999; color:#FFFFFF; line-height:20px; padding:3px; font-family:arial; font-size:10px; }
-        table tbody tr td { padding:2px; font-family:arial; font-size:10px; }
-        table tbody .claro{background-color:#F4F4F4;}
-        table tbody .escuro{background-color:#E0E0E0;}
-        table { border:#000000 1px solid; width:100%; border-collapse: collapse; }
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .form-container { background-color: #f4f4f4; padding: 20px; border: 1px solid #ccc; margin-bottom: 20px; }
+        .form-container label { margin-right: 10px; }
+        .form-container input[type="date"] { padding: 5px; }
+        .form-container input[type="submit"] { padding: 5px 15px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        .error-message { color: red; font-weight: bold; margin-bottom: 20px; }
+        strong { font-family:arial; display:block; margin-bottom:10px; font-size: 18px; }
+        table { border:#000000 1px solid; width:100%; border-collapse: collapse; margin-top: 20px; }
+        table thead tr td { font-weight:bold; background-color:#999999; color:#FFFFFF; line-height:20px; padding:5px; font-size:12px; }
+        table tbody tr td { padding:4px; font-size:11px; }
+        table tbody .claro { background-color:#F4F4F4; }
+        table tbody .escuro { background-color:#E0E0E0; }
         .rodape-total { color: red; font-size: 16px; width:98%; border: solid 1px black; padding: 1%; margin-top: 10px; float: left; text-align: center; }
     </style>
 </head>
 <body>
 
+    <h1>Gerador de Relatórios de Alunos</h1>
+
+    <div class="form-container">
+        <form action="gerador_relatorio.php" method="GET">
+            <label for="data_inicio">Data de Início:</label>
+            <input type="date" id="data_inicio" name="data_inicio" value="<?php echo htmlspecialchars($data_inicio); ?>">
+
+            <label for="data_fim">Data Final:</label>
+            <input type="date" id="data_fim" name="data_fim" value="<?php echo htmlspecialchars($data_fim); ?>">
+
+            <input type="submit" value="Gerar Relatório">
+        </form>
+    </div>
+
+    <?php if (!empty($mensagem_erro)): ?>
+        <p class="error-message"><?php echo $mensagem_erro; ?></p>
+    <?php endif; ?>
+
     <strong><?php echo htmlspecialchars($titulo_relatorio); ?></strong>
-    <table width="100%">
+    
+    <?php if (!empty($dados_alunos)): ?>
+    <table>
         <thead>
             <tr>
                 <td align="center">Data</td>
@@ -32,10 +58,7 @@
         </thead>
         <tbody>
             <?php foreach ($dados_alunos as $index => $aluno): ?>
-            <?php
-                $classe_linha = ($index % 2 == 0) ? 'claro' : 'escuro';
-            ?>
-            <tr class="<?php echo $classe_linha; ?>">
+            <tr class="<?php echo ($index % 2 == 0) ? 'claro' : 'escuro'; ?>">
                 <td align="center"><?php echo htmlspecialchars($aluno['data'] ?? ''); ?></td>
                 <td align="center"><?php echo htmlspecialchars($aluno['matricula'] ?? ''); ?></td>
                 <td align="left"><a href="https://www.inovecfc.com.br/sistemas/inove/cadastro_aluno.php?id=<?php echo htmlspecialchars($aluno['matricula'] ?? ''); ?>" target="_blank"><?php echo htmlspecialchars($aluno['aluno'] ?? ''); ?></a></td>
@@ -49,9 +72,13 @@
             <?php endforeach; ?>
         </tbody>
     </table>
-    <br>
+    
     <div class="rodape-total">
         Alunos cadastrados no período: <?php echo htmlspecialchars($total_alunos); ?>
     </div>
+    <?php elseif (empty($mensagem_erro)): ?>
+        <p>Nenhum aluno encontrado para o período selecionado.</p>
+    <?php endif; ?>
+
 </body>
 </html>
