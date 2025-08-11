@@ -1,4 +1,5 @@
 <?php
+// cria o bd pra testes
 try {
     // 1. Conexão com o SQLite
     // Se o arquivo não existir, o PHP irá criá-lo automaticamente.
@@ -13,23 +14,23 @@ try {
       id_aluno INTEGER PRIMARY KEY AUTOINCREMENT,
       nome TEXT NOT NULL,
       email TEXT NOT NULL,
-      status TEXT NOT NULL
+      status TEXT NOT NULL,
+      valor NUMERIC
     )";
 
     // Executa a criação da tabela
     $pdo->exec($sql_create_table);
     
     // 3. SQL para inserir os dados de exemplo
-    // (Apenas insere se a tabela estiver vazia para não duplicar)
     $stmt = $pdo->query("SELECT COUNT(*) FROM alunos");
     if ($stmt->fetchColumn() == 0) {
         $sql_insert_data = "
-        INSERT INTO alunos (nome, email, status) VALUES
-        ('ANA CAROLINA PEREIRA', 'ana.carolina@email.com', 'Ativo'),
-        ('BRUNO DIAS DE ALMEIDA', 'bruno.dias@email.com', 'Ativo'),
-        ('CARLOS ANDRADE LIMA', 'carlos.lima@email.com', 'Inativo'),
-        ('DANIELA MARTINS ROCHA', 'daniela.rocha@email.com', 'Ativo'),
-        ('EDUARDO FERNANDES', 'eduardo.f@email.com', 'Ativo');
+        INSERT INTO alunos (nome, email, status, valor) VALUES
+        ('ANA CAROLINA PEREIRA', 'ana.carolina@email.com', 'Ativo',103),
+        ('BRUNO DIAS DE ALMEIDA', 'bruno.dias@email.com', 'Ativo',48),
+        ('CARLOS ANDRADE LIMA', 'carlos.lima@email.com', 'Inativo',35),
+        ('DANIELA MARTINS ROCHA', 'daniela.rocha@email.com', 'Ativo',20),
+        ('EDUARDO FERNANDES', 'eduardo.f@email.com', 'Ativo',15);
         ";
         // Executa a inserção dos dados
         $pdo->exec($sql_insert_data);

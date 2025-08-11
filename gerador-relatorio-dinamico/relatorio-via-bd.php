@@ -1,50 +1,34 @@
 <?php
 require_once 'Relatorio.php';
 
+// 1. CONEXÃO
 try {
-    // 1. CONEXÃO COM O SQLITE (muito mais simples!)
     $pdo = new PDO('sqlite:meu_banco_de_dados.sqlite');
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
 } catch (PDOException $e) {
-    die("Não foi possível conectar ao banco de dados SQLite: " . $e->getMessage());
+    die("Erro ao conectar: " . $e->getMessage());
 }
 
-// 2. CONSULTA SQL (a mesma de antes)
+// 2. CONSULTA SQL
 $sql = "SELECT 
             id_aluno AS 'Matrícula',
             nome AS 'Nome do Aluno',
-            email AS 'E-mail',
-            status AS 'Status'
+            status AS 'Status',
+            valor AS 'Valor'
          FROM alunos 
          WHERE status = 'Ativo'
          ORDER BY nome ASC";
 
+// Executa a consulta e obtém o objeto statement
 $statement = $pdo->query($sql);
 
-// 3. BUSCA E ADAPTAÇÃO DOS DADOS (muito mais fácil com PDO)
-// Pega todos os resultados de uma vez em um array associativo
-$body_associativo = $statement->fetchAll(PDO::FETCH_ASSOC);
-
-$header = [];
-$body = [];
-
-if (!empty($body_associativo)) {
-    // Pega o cabeçalho das chaves do primeiro resultado
-    $header = array_keys($body_associativo[0]);
-    // Converte o array associativo para um array de valores para o corpo
-    foreach ($body_associativo as $linha) {
-        $body[] = array_values($linha);
-    }
-}
-
-// 4. Prepara o título e rodapé
-$titulo = "Relatório de Alunos Ativos (via SQLite)";
-$footer = ["Total de registros encontrados: " . count($body) . " | Gerado em: " . date('d/m/Y')];
-
-// 5. GERA O RELATÓRIO (nenhuma mudança aqui)
+// 3. GERA O RELATÓRIO (A FORMA MAIS SIMPLES POSSÍVEL)
+$titulo = "Relatório de Alunos Ativos (Simplificado)";
 $relatorio = new Relatorio();
-$relatorio->init($titulo, $header, $body, $footer);
+
+// Colunas: 0=Matrícula, 1=Nome, 2=Status, 3=Valor
+$relatorio->addCalculo(3, 'soma', 'Valor Total: R$ ') 
+          ->gerarDePdoStatement($titulo, $statement)
+          ->show();
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -54,8 +38,6 @@ $relatorio->init($titulo, $header, $body, $footer);
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <?php
-        $relatorio->show();
-    ?>
+    <?php /* O corpo pode ficar vazio pois o ->show() já foi chamado */ ?>
 </body>
 </html>

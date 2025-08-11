@@ -4,93 +4,83 @@ class Relatorio {
     
     protected $html;
     protected $numeroDeColunas = 0;
+    private $calculos = [];
 
     public function __construct() {
         $this->html = "";
     }
     
-    public function __destruct() {
-        
+    public function __destruct() {}
+
+    public function addCalculo(int $colunaIndex, string $tipo, string $label): self {
+        $this->calculos[] = [
+            'coluna' => $colunaIndex,
+            'tipo' => $tipo,
+            'label' => $label
+        ];
+        return $this;
     }
-    
-    /**
-     * Ponto de entrada principal para iniciar a geração do relatório.
-     */
+
+    public function gerarDePdoStatement(string $titulo, PDOStatement $statement, array $footer = []): self {
+        $body_associativo = $statement->fetchAll(PDO::FETCH_ASSOC);
+        $header = [];
+        $body = [];
+
+        if (!empty($body_associativo)) {
+            $header = array_keys($body_associativo[0]);
+            foreach ($body_associativo as $linha) {
+                $body[] = array_values($linha);
+            }
+        }
+        
+        $footer[] = "Total de registros encontrados: " . count($body);
+        $footer[] = "Gerado em: " . date('d/m/Y');
+
+        $this->init($titulo, $header, $body, $footer);
+        
+        return $this;
+    }
+
     public function init(string $titulo, array $header, array $body, array $footer) {
         $this->setTitulo($titulo);
-        
-        $this->html .= "<table border='1' cellpadding='5' cellspacing='0' width='100%'>";
-        
+        $this->html .= "<table>";
         $this->setHeaderHeader($header);
-        $this->setHeaderBody($body); 
-        $this->setHeaderFooter($footer);
-
+        $this->setHeaderBody($body);
+        $resultadosCalculos = $this->executarCalculos($body);
+        $footerFinal = array_merge($footer, $resultadosCalculos);
+        $this->setHeaderFooter($footerFinal);
         $this->html .= "</table>";
     }
     
-    /**
-     * Define o título principal do relatório.
-     */
-    protected function setTitulo(string $titulo) {
-        $this->html = "<h1>" . htmlspecialchars($titulo) . "</h1>"; 
-    }
-    
-    /**
-     * Monta o cabeçalho da tabela (usa <th> e <thead>).
-     */
-    protected function setHeaderHeader(array $header) {
-        $this->numeroDeColunas = count($header);
-        $this->html .= "<thead>"; 
-        $this->html .= "<tr>"; 
-        foreach ($header as $coluna) {
-            $this->html .= "<th>" . htmlspecialchars($coluna) . "</th>"; 
-        }
-        $this->html .= "</tr>"; 
-        $this->html .= "</thead>"; 
-    }
-    
-    /**
-     * Monta o corpo da tabela com múltiplas linhas (aceita array de arrays).
-     */
-    protected function setHeaderBody(array $body) {
-        $this->html .= "<tbody>";
-        foreach ($body as $linha) {
-            $this->html .= "<tr>";
-            foreach ($linha as $celula) {
-                $this->html .= "<td>" . htmlspecialchars($celula) . "</td>";
+    private function executarCalculos(array $body): array {
+        $resultados = [];
+        foreach ($this->calculos as $calculo) {
+            $soma = 0;
+            if ($calculo['tipo'] === 'soma') {
+                foreach ($body as $linha) {
+                    $valor = $linha[$calculo['coluna']] ?? 0;
+                    $valorLimpo = preg_replace('/[^\d,.]/', '', $valor);
+                    $valorLimpo = str_replace(['.', ','], ['', '.'], $valorLimpo);
+                    $soma += floatval($valorLimpo);
+                }
+                $resultados[] = $calculo['label'] . number_format($soma, 2, ',', '.');
             }
-            $this->html .= "</tr>"; 
         }
-        $this->html .= "</tbody>";
+        return $resultados;
     }
     
-    /**
-     * Monta o rodapé da tabela (usa <tfoot> e colspan).
-     */
     protected function setHeaderFooter(array $footer) {
-        if (empty($footer)) {
-            return;
-        }
-
+        if (empty($footer)) { return; }
         $this->html .= "<tfoot>";
-        $this->html .= "<tr>";
-        $conteudoFooter = $footer[0] ?? '';
-        $this->html .= "<td colspan='" . $this->numeroDeColunas . "' style='text-align:center; font-style:italic;'>" . htmlspecialchars($conteudoFooter) . "</td>";
-        $this->html .= "</tr>";
+        foreach ($footer as $linhaFooter) {
+            $this->html .= "<tr><td colspan='" . $this->numeroDeColunas . "'>" . htmlspecialchars($linhaFooter) . "</td></tr>";
+        }
         $this->html .= "</tfoot>";
     }
-       
-    /**
-     * Retorna a string HTML completa do relatório.
-     */
-    public function getHtml(): string {
-        return $this->html;
-    }
-
-    /**
-     * Imprime o HTML do relatório diretamente na tela.
-     */
-    public function show(): void {
-        echo $this->getHtml();
-    }
+    
+    protected function setTitulo(string $titulo) { $this->html = "<h1>" . htmlspecialchars($titulo) . "</h1>"; }
+    protected function setHeaderHeader(array $header) { $this->numeroDeColunas = count($header); $this->html .= "<thead><tr>"; foreach ($header as $c) { $this->html .= "<th>" . htmlspecialchars($c) . "</th>"; } $this->html .= "</tr></thead>"; }
+    protected function setHeaderBody(array $body) { $this->html .= "<tbody>"; foreach ($body as $l) { $this->html .= "<tr>"; foreach ($l as $c) { $this->html .= "<td>" . htmlspecialchars($c) . "</td>"; } $this->html .= "</tr>"; } $this->html .= "</tbody>"; }
+    public function getHtml(): string { return $this->html; }
+    public function show(): void { echo $this->getHtml(); }
 }
