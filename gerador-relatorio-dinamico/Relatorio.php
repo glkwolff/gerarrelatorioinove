@@ -10,7 +10,7 @@ class Relatorio {
     }
     
     public function __destruct() {
-        // Nenhuma ação necessária
+        
     }
     
     /**
