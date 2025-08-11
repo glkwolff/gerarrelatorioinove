@@ -47,8 +47,9 @@ class Relatorio {
         $this->setHeaderHeader($header);
         $this->setHeaderBody($body);
         $resultadosCalculos = $this->executarCalculos($body);
-        $footerFinal = array_merge($footer, $resultadosCalculos);
-        $this->setHeaderFooter($footerFinal);
+        
+        $this->setHeaderFooter($footer, $resultadosCalculos);
+
         $this->html .= "</table>";
     }
     
@@ -59,22 +60,44 @@ class Relatorio {
             if ($calculo['tipo'] === 'soma') {
                 foreach ($body as $linha) {
                     $valor = $linha[$calculo['coluna']] ?? 0;
-                    $valorLimpo = preg_replace('/[^\d,.]/', '', $valor);
+                    $valorLimpo = preg_replace('/[^\d,.-]/', '', $valor);
                     $valorLimpo = str_replace(['.', ','], ['', '.'], $valorLimpo);
                     $soma += floatval($valorLimpo);
                 }
-                $resultados[] = $calculo['label'] . number_format($soma, 2, ',', '.');
+                $resultados[] = [
+                    'coluna' => $calculo['coluna'],
+                    'label' => $calculo['label'],
+                    'valor' => number_format($soma, 2, ',', '.')
+                ];
             }
         }
         return $resultados;
     }
     
-    protected function setHeaderFooter(array $footer) {
-        if (empty($footer)) { return; }
+    // VERSÃO CORRIGIDA DO MÉTODO DO RODAPÉ
+    protected function setHeaderFooter(array $footer, array $calculos = []) {
+        if (empty($footer) && empty($calculos)) { return; }
+
         $this->html .= "<tfoot>";
+
+        // 1. Cria a linha de totais alinhada PRIMEIRO
+        if (!empty($calculos)) {
+            $celulasTotais = array_fill(0, $this->numeroDeColunas, '');
+            foreach ($calculos as $calc) {
+                $celulasTotais[$calc['coluna']] = htmlspecialchars($calc['label'] . $calc['valor']);
+            }
+            $this->html .= "<tr style='font-weight: bold; background-color: #e9ecef;'>";
+            foreach ($celulasTotais as $celula) {
+                $this->html .= "<td>" . $celula . "</td>";
+            }
+            $this->html .= "</tr>";
+        }
+
+        // 2. Adiciona as linhas de rodapé padrão DEPOIS
         foreach ($footer as $linhaFooter) {
             $this->html .= "<tr><td colspan='" . $this->numeroDeColunas . "'>" . htmlspecialchars($linhaFooter) . "</td></tr>";
         }
+
         $this->html .= "</tfoot>";
     }
     
