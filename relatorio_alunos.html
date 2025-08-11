@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório de Alunos InoveCFC</title>
+    <style>
+        strong { font-family:arial; display:block; margin-bottom:10px; }
+        table thead tr td { font-weight:bold; background-color:#999999; color:#FFFFFF; line-height:20px; padding:3px; font-family:arial; font-size:10px; }
+        table tbody tr td { padding:2px; font-family:arial; font-size:10px; }
+        table tbody .claro{background-color:#F4F4F4;}
+        table tbody .escuro{background-color:#E0E0E0;}
+        table { border:#000000 1px solid; width:100%; border-collapse: collapse; }
+        .rodape-total { color: red; font-size: 16px; width:98%; border: solid 1px black; padding: 1%; margin-top: 10px; float: left; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <strong><?php echo htmlspecialchars($titulo_relatorio); ?></strong>
+    <table width="100%">
+        <thead>
+            <tr>
+                <td align="center">Data</td>
+                <td align="center">Matricula</td>
+                <td align="left" style="width:200px;">Aluno</td>
+                <td align="left">E-mail/Telefone(s)</td>
+                <td align="left">Endereço</td>
+                <td align="left">Bairro</td>
+                <td align="left">Cidade - UF</td>
+                <td align="left">Status</td>
+                <td align="left">Funcionário</td>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($dados_alunos as $index => $aluno): ?>
+            <?php
+                $classe_linha = ($index % 2 == 0) ? 'claro' : 'escuro';
+            ?>
+            <tr class="<?php echo $classe_linha; ?>">
+                <td align="center"><?php echo htmlspecialchars($aluno['data'] ?? ''); ?></td>
+                <td align="center"><?php echo htmlspecialchars($aluno['matricula'] ?? ''); ?></td>
+                <td align="left"><a href="https://www.inovecfc.com.br/sistemas/inove/cadastro_aluno.php?id=<?php echo htmlspecialchars($aluno['matricula'] ?? ''); ?>" target="_blank"><?php echo htmlspecialchars($aluno['aluno'] ?? ''); ?></a></td>
+                <td align="center"><?php echo htmlspecialchars($aluno['email_telefone'] ?? ''); ?></td>
+                <td align="left"><?php echo htmlspecialchars($aluno['endereco'] ?? ''); ?></td>
+                <td align="left"><?php echo htmlspecialchars($aluno['bairro'] ?? ''); ?></td>
+                <td align="left"><?php echo htmlspecialchars($aluno['cidade_uf'] ?? ''); ?></td>
+                <td align="left"><?php echo htmlspecialchars($aluno['status'] ?? ''); ?></td>
+                <td align="left"><?php echo htmlspecialchars($aluno['funcionario'] ?? ''); ?></td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+    <br>
+    <div class="rodape-total">
+        Alunos cadastrados no período: <?php echo htmlspecialchars($total_alunos); ?>
+    </div>
+</body>
+</html>
