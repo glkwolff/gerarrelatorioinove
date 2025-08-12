@@ -16,7 +16,7 @@ Um motor orientado a objetos em PHP, projetado para gerar relatórios HTML dinâ
 
 ## 🛠️ Como Usar (Guia para XAMPP)
 
-Olá, Gabriel! Este guia detalhado vai te mostrar como configurar e executar o projeto no seu ambiente XAMPP.
+Este guia detalhado vai te mostrar como configurar e executar o projeto no seu ambiente XAMPP.
 
 ### **Passo 1: Organizar os Arquivos no XAMPP**
 
