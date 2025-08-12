@@ -15,19 +15,24 @@ $sql = "SELECT
             status AS 'Status',
             valor AS 'Valor'
          FROM alunos 
-         WHERE status = 'Ativo'
          ORDER BY nome ASC";
 
-// Executa a consulta e obtém o objeto statement
+// Executa a consulta
 $statement = $pdo->query($sql);
 
-// 3. GERA O RELATÓRIO (A FORMA MAIS SIMPLES POSSÍVEL)
-$titulo = "Relatório de Alunos Ativos (Simplificado)";
+// 3. GERA O RELATÓRIO
+$titulo = "Relatório Completo de Alunos";
 $relatorio = new Relatorio();
 
 // Colunas: 0=Matrícula, 1=Nome, 2=Status, 3=Valor
-$relatorio->addCalculo(3, 'soma', 'Valor Total: R$ ') 
-          ->gerarDePdoStatement($titulo, $statement)
+$relatorio->addCalculo(3, 'soma', 'Valor Total: R$ ');
+
+// Adiciona os cálculos de porcentagem na coluna 2 (Status)
+$relatorio->addPorcentagem(2, 'Ativo', '% Ativos: ');
+$relatorio->addPorcentagem(2, 'Inativo', '% Inativos: ');
+
+// Gera e exibe
+$relatorio->gerarDePdoStatement($titulo, $statement)
           ->show();
 ?>
 <!DOCTYPE html>
